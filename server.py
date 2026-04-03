@@ -123,7 +123,10 @@ class LCLHandler(SimpleHTTPRequestHandler):
 
     def do_POST(self):
         """Handle POST requests"""
-        if self.path == '/api/data':
+        parsed = urlparse(self.path)
+        path = parsed.path
+
+        if path == '/api/data':
             content_length = int(self.headers.get('Content-Length', 0))
             body = self.rfile.read(content_length)
 
@@ -146,8 +149,13 @@ class LCLHandler(SimpleHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
         else:
+            body = json.dumps({"error": "Not Found"}).encode()
             self.send_response(404)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Content-Length', str(len(body)))
+            self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
+            self.wfile.write(body)
 
     def do_OPTIONS(self):
         """Handle OPTIONS requests for CORS"""
