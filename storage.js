@@ -3,7 +3,10 @@ const Storage = {
     DATA_KEY: 'lcl_data',
     API_URL: `${window.location.origin}/api/data`,
     cachedData: null,
-    
+
+    // 🔧 DEBUG MODE (turn false in production)
+    DEBUG: true,
+
     // Default data structure
     getDefaultData() {
         return {
@@ -42,7 +45,7 @@ const Storage = {
     // Initialize - Load from server
     init() {
         console.log('🔧 Initializing Storage system...');
-        
+
         const timestamp = new Date().getTime();
         fetch(`${this.API_URL}?t=${timestamp}`, { method: 'GET' })
             .then(res => res.json())
@@ -50,16 +53,18 @@ const Storage = {
                 this.cachedData = data;
                 localStorage.setItem(this.DATA_KEY, JSON.stringify(data));
                 console.log('✅ Loaded data from server');
-                if (data.users && Array.isArray(data.users)) {
+
+                if (this.DEBUG && data.users && Array.isArray(data.users)) {
                     console.log(`📋 Users: ${data.users.length}`);
                     data.users.forEach(u => {
-                        console.log(`   ├─ ${u.email}${u.isAdmin ? ' 🔑 ADMIN' : ''}`);
+                        console.log(`   ├─ ${u.displayName}${u.isAdmin ? ' 🔑 ADMIN' : ''}`);
                     });
                 }
             })
             .catch(err => {
                 console.warn('⚠️ Server unavailable, using localStorage');
                 const localData = localStorage.getItem(this.DATA_KEY);
+
                 if (localData) {
                     this.cachedData = JSON.parse(localData);
                     console.log('✅ Using localStorage (offline mode)');
@@ -71,13 +76,12 @@ const Storage = {
             });
     },
 
-    // Get all data - returns cached or localStorage
+    // Get all data
     getData() {
-        if (this.cachedData) {
-            return this.cachedData;
-        }
+        if (this.cachedData) return this.cachedData;
 
         const localData = localStorage.getItem(this.DATA_KEY);
+
         if (localData) {
             try {
                 this.cachedData = JSON.parse(localData);
@@ -109,11 +113,14 @@ const Storage = {
             .catch(err => console.warn('⚠️ Server save failed:', err.message));
     },
 
-    // User operations
+    // =====================
+    // USER OPERATIONS
+    // =====================
+
     addUser(email, displayName, password) {
         const data = this.getData();
         const userExists = data.users.some(u => u.email === email);
-        
+
         if (userExists) {
             return { success: false, message: 'Email already registered' };
         }
@@ -133,28 +140,27 @@ const Storage = {
 
     getUserByEmail(email) {
         const data = this.getData();
-        
-        // Validate data structure
+
         if (!data.users || !Array.isArray(data.users)) {
-            console.error('❌ CRITICAL: Users array is missing or corrupted!');
-            console.log('Data structure:', data);
-            // Try to fix it
+            console.error('❌ CRITICAL: Users array missing!');
             this.init();
             return this.getUserByEmail(email);
         }
-        
+
         const user = data.users.find(u => u.email === email);
-        
-        if (!user) {
-            console.error(`❌ User NOT found: ${email}`);
-            console.log(`📋 Available users (${data.users.length}):`);
-            data.users.forEach(u => {
-                console.log(`   - ${u.email} (${u.displayName})${u.isAdmin ? ' 🔑' : ''}`);
-            });
-        } else {
-            console.log(`✅ User FOUND: ${email}`);
+
+        if (this.DEBUG) {
+            if (!user) {
+                console.error(`❌ User NOT found: ${email}`);
+                console.log(`📋 Available users (${data.users.length}):`);
+                data.users.forEach(u => {
+                    console.log(`   - ${u.displayName}${u.isAdmin ? ' 🔑' : ''}`);
+                });
+            } else {
+                console.log(`✅ User FOUND: ${email}`);
+            }
         }
-        
+
         return user || null;
     },
 
@@ -163,9 +169,13 @@ const Storage = {
         return data.users.find(u => u.id === id) || null;
     },
 
-    // Level operations
+    // =====================
+    // LEVEL OPERATIONS
+    // =====================
+
     addLevel(levelData) {
         const data = this.getData();
+
         const newLevel = {
             id: data.levels.length + 1,
             ...levelData,
@@ -180,6 +190,7 @@ const Storage = {
 
     addPendingLevel(levelData, submittedBy) {
         const data = this.getData();
+
         const newPending = {
             id: 'pending_' + Date.now(),
             ...levelData,
@@ -194,19 +205,17 @@ const Storage = {
     },
 
     getAllLevels() {
-        const data = this.getData();
-        return data.levels || [];
+        return this.getData().levels || [];
     },
 
     getPendingLevels() {
-        const data = this.getData();
-        return data.pendingLevels || [];
+        return this.getData().pendingLevels || [];
     },
 
     approvePendingLevel(pendingId) {
         const data = this.getData();
         const pending = data.pendingLevels.find(p => p.id === pendingId);
-        
+
         if (!pending) return false;
 
         const newLevel = {
@@ -217,65 +226,76 @@ const Storage = {
 
         data.levels.push(newLevel);
         data.pendingLevels = data.pendingLevels.filter(p => p.id !== pendingId);
+
         this.saveData(data);
         console.log(`✅ Level "${newLevel.name}" approved!`);
+
         return true;
     },
 
     deleteLevel(levelId) {
         const data = this.getData();
         const index = data.levels.findIndex(l => l.id === levelId);
-        
+
         if (index === -1) return false;
 
         const level = data.levels[index];
         data.levels.splice(index, 1);
+
         this.saveData(data);
         console.log(`✅ Level "${level.name}" deleted`);
+
         return true;
     },
 
     replaceLevel(currentId, newPosition) {
         const data = this.getData();
         const levelIndex = data.levels.findIndex(l => l.id === currentId);
-        
+
         if (levelIndex === -1) return false;
 
         const [level] = data.levels.splice(levelIndex, 1);
         data.levels.splice(newPosition - 1, 0, level);
+
         this.saveData(data);
         console.log(`✅ "${level.name}" moved to position ${newPosition}`);
+
         return true;
     },
 
     updateLevel(levelId, updates) {
         const data = this.getData();
         const level = data.levels.find(l => l.id === levelId);
-        
+
         if (!level) return false;
 
         Object.assign(level, updates);
         this.saveData(data);
+
         return true;
     },
 
     deletePendingLevel(pendingId) {
         const data = this.getData();
         const index = data.pendingLevels.findIndex(p => p.id === pendingId);
-        
+
         if (index === -1) return false;
 
         const level = data.pendingLevels[index];
         data.pendingLevels.splice(index, 1);
+
         this.saveData(data);
         console.log(`✅ Level "${level.name}" rejected`);
+
         return true;
     },
 
-    // Settings operations
+    // =====================
+    // SETTINGS
+    // =====================
+
     getSettings() {
-        const data = this.getData();
-        return data.settings;
+        return this.getData().settings;
     },
 
     updateSettings(settings) {
@@ -308,15 +328,17 @@ const Storage = {
         this.updateSettings({ darkBackground: isDark });
     },
 
-    // Debug methods
+    // =====================
+    // DEBUG
+    // =====================
+
     getAllUsers() {
-        const data = this.getData();
-        return data.users;
+        return this.getData().users;
     },
 
     printAllData() {
-        console.log('=== LCL DATA ===');
         const data = this.getData();
+        console.log('=== LCL DATA ===');
         console.log('Users:', data.users.length);
         console.log('Levels:', data.levels.length);
         console.log('Pending:', data.pendingLevels.length);
@@ -324,8 +346,7 @@ const Storage = {
     },
 
     resetToDefault() {
-        const defaultData = this.getDefaultData();
-        this.saveData(defaultData);
+        this.saveData(this.getDefaultData());
         console.log('✅ Data reset to defaults');
         setTimeout(() => window.location.reload(), 500);
     }
