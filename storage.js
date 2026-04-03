@@ -1,7 +1,7 @@
 // Storage Management - Server + localStorage backup
 const Storage = {
     DATA_KEY: 'lcl_data',
-    API_URL: 'http://localhost:3000/api/data',
+    API_URL: `${window.location.origin}/api/data`,
     cachedData: null,
     
     // Default data structure

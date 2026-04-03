@@ -140,7 +140,7 @@ const App = {
     refreshDataFromServer() {
         // Add timestamp to bust cache
         const timestamp = new Date().getTime();
-        fetch(`http://localhost:3000/api/data?t=${timestamp}`)
+        fetch(`${window.location.origin}/api/data?t=${timestamp}`)
             .then(res => res.json())
             .then(data => {
                 Storage.cachedData = data;
