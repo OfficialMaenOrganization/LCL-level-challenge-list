@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LCL - Level Challenge List</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Menu Button -->
+        <button id="menuBtn" class="menu-btn" title="Menu">🏡</button>
+
+        <!-- Menu Sidebar -->
+        <nav id="menu" class="menu hidden">
+            <div class="menu-header">
+                <button id="closeMenuBtn" class="close-menu">×</button>
+                <h2>Menu</h2>
+            </div>
+            <ul class="menu-list">
+                <li><a href="#" data-action="home" class="menu-link">Home</a></li>
+                <li><a href="#" data-action="sendLevel" class="menu-link">Send Level</a></li>
+                <li><a href="#" data-action="rules" class="menu-link">Rules</a></li>
+                <li><a href="#" data-action="settings" class="menu-link">Settings</a></li>
+                <li id="authMenuItems">
+                    <a href="#" data-action="login" class="menu-link">Log In</a>
+                    <a href="#" data-action="register" class="menu-link">Register</a>
+                </li>
+                <li id="loggedInItems" class="hidden">
+                    <span id="userDisplayName" class="user-display"></span>
+                    <a href="#" data-action="logout" class="menu-link logout-link">Log Out</a>
+                    <a href="#" data-action="admin" class="menu-link admin-link hidden">Admin Panel</a>
+                </li>
+                <li class="menu-divider"></li>
+                <li><a href="https://discord.com/channels/1479132434661511248/1479132436079317087" target="_blank" class="menu-link discord-link">📱 Join our Discord</a></li>
+            </ul>
+        </nav>
+
+        <!-- Overlay -->
+        <div id="overlay" class="overlay hidden"></div>
+
+        <!-- Main Content -->
+        <div id="content" class="content">
+            <!-- Home Page -->
+            <section id="homePage" class="page active">
+                <div class="container">
+                    <h1>LCL - Level Challenge List</h1>
+                    <p class="subtitle">Geometry Dash Community Rated Levels</p>
+                    
+                    <div id="leaderboard" class="leaderboard">
+                        <div class="leaderboard-header">
+                            <h2>Leaderboard</h2>
+                        </div>
+                        <div id="levelsList" class="levels-list">
+                            <p class="empty-state">No levels yet. Be the first to submit one!</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Send Level Page -->
+            <section id="sendLevelPage" class="page">
+                <div class="container">
+                    <button class="back-btn" data-action="home">← Back</button>
+                    <h1>Submit a Level</h1>
+                    <form id="sendLevelForm" class="form">
+                        <div class="form-group">
+                            <label for="levelName">Level Name</label>
+                            <input type="text" id="levelName" required placeholder="Enter level name">
+                        </div>
+                        <div class="form-group">
+                            <label for="levelId">Level ID (Geometry Dash)</label>
+                            <input type="number" id="levelId" required placeholder="Enter level ID">
+                        </div>
+                        <div class="form-group">
+                            <label for="youtubeUrl">YouTube URL</label>
+                            <input type="url" id="youtubeUrl" required placeholder="https://youtube.com/watch?v=...">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Send Level to Admin!</button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Rules Page -->
+            <section id="rulesPage" class="page">
+                <div class="container">
+                    <button class="back-btn" data-action="home">← Back</button>
+                    <h1>Rules</h1>
+                    <div class="rules-list">
+                        <div class="rule-card">
+                            <h3>Rule 1</h3>
+                            <p>Your level must be at least 1 minute long</p>
+                        </div>
+                        <div class="rule-card">
+                            <h3>Rule 2</h3>
+                            <p>CBF (circle back flying) are allowed, but cheats are NOT allowed</p>
+                        </div>
+                        <div class="rule-card">
+                            <h3>Rule 3</h3>
+                            <p>You must record your clicks (show proof of completion)</p>
+                        </div>
+                        <div class="rule-card">
+                            <h3>Rule 4</h3>
+                            <p>All gamedodes are allowed (Wave, Cube, Ship, etc.)</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Login Page -->
+            <section id="loginPage" class="page">
+                <div class="container">
+                    <button class="back-btn" data-action="home">← Back</button>
+                    <h1>Log In</h1>
+                    <form id="loginForm" class="form">
+                        <div class="form-group">
+                            <label for="loginEmail">Email</label>
+                            <input type="email" id="loginEmail" required placeholder="Enter your email">
+                        </div>
+                        <div class="form-group">
+                            <label for="loginPassword">Password</label>
+                            <input type="password" id="loginPassword" required placeholder="Enter your password">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Log In</button>
+                        <p class="form-footer">Don't have an account? <a href="#" data-action="register">Register here</a></p>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Register Page -->
+            <section id="registerPage" class="page">
+                <div class="container">
+                    <button class="back-btn" data-action="home">← Back</button>
+                    <h1>Register</h1>
+                    <form id="registerForm" class="form">
+                        <div class="form-group">
+                            <label for="registerEmail">Email</label>
+                            <input type="email" id="registerEmail" required placeholder="Enter your email">
+                        </div>
+                        <div class="form-group">
+                            <label for="displayName">Display Name</label>
+                            <input type="text" id="displayName" required placeholder="Enter display name">
+                        </div>
+                        <div class="form-group">
+                            <label for="registerPassword">Password</label>
+                            <input type="password" id="registerPassword" required placeholder="Enter password">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Register</button>
+                        <p class="form-footer">Already have an account? <a href="#" data-action="login">Log in here</a></p>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Settings Page -->
+            <section id="settingsPage" class="page">
+                <div class="container">
+                    <button class="back-btn" data-action="home">← Back</button>
+                    <h1>Settings</h1>
+                    <div class="settings-container">
+                        <div class="settings-group">
+                            <h3>Appearance</h3>
+                            <div class="setting-item">
+                                <label for="themeSelect">Theme</label>
+                                <select id="themeSelect">
+                                    <option value="dark">Dark</option>
+                                    <option value="light">Light</option>
+                                    <option value="auto">Auto</option>
+                                </select>
+                            </div>
+                            <div class="setting-item">
+                                <label for="backgroundToggle">Dark Background</label>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" id="backgroundToggle">
+                                    <span class="toggle-slider"></span>
+                                </div>
+                            </div>
+                        </div>
+
+
+                    </div>
+                </div>
+            </section>
+
+            <!-- Admin Panel Page -->
+            <section id="adminPage" class="page">
+                <div class="container">
+                    <button class="back-btn" data-action="home">← Back</button>
+                    <h1>Admin Panel</h1>
+                    
+                    <div class="admin-section">
+                        <h2>Pending Level Submissions</h2>
+                        <div id="pendingLevelsList" class="admin-list">
+                            <p class="empty-state">No pending submissions</p>
+                        </div>
+                    </div>
+
+                    <div class="admin-section">
+                        <h2>Manage Levels</h2>
+                        <div id="manageLevelsList" class="admin-list">
+                            <p class="empty-state">No levels to manage</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="levelModal" class="modal hidden">
+        <div class="modal-content">
+            <button class="modal-close">×</button>
+            <h2 id="modalLevelName"></h2>
+            <div class="modal-body">
+                <div class="modal-thumbnail">
+                    <img id="modalThumbnail" src="" alt="Level thumbnail" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22200%22%3E%3Crect fill=%22%23ccc%22 width=%22300%22 height=%22200%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23666%22%3ENo Image%3C/text%3E%3C/svg%3E'">
+                </div>
+                <div class="modal-info">
+                    <p><strong>Level ID:</strong> <span id="modalLevelId"></span></p>
+                    <p><strong>Difficulty:</strong> <span id="modalDifficulty"></span></p>
+                    <a id="modalYoutubeLink" href="" target="_blank" class="btn btn-secondary">📺 Watch on YouTube</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="replaceModal" class="modal hidden">
+        <div class="modal-content">
+            <button class="modal-close">×</button>
+            <h2>Replace Level</h2>
+            <div class="modal-body">
+                <p>Select the new position for this level:</p>
+                <div id="replacePositionsList" class="positions-list"></div>
+                <div class="modal-actions">
+                    <button id="confirmReplaceBtn" class="btn btn-primary">Replace</button>
+                    <button class="modal-close btn btn-secondary">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="storage.js"></script>
+    <script src="auth.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
