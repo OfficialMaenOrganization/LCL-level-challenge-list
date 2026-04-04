@@ -33,20 +33,7 @@ def load_data():
                 "isAdmin": True
             }
         ],
-        "levels": [
-            {
-                "id": 1,
-                "name": "Stereo Madness",
-                "levelId": 1,
-                "url": "https://example.com/level1",
-                "youtubeUrl": "https://youtube.com/watch?v=example1",
-                "thumbnail": "https://via.placeholder.com/300x200?text=Stereo+Madness",
-                "difficulty": "Easy",
-                "submittedBy": "Admin",
-                "submittedDate": time.strftime('%Y-%m-%dT%H:%M:%S'),
-                "status": "approved"
-            }
-        ],
+        "levels": [],
         "pendingLevels": [],
         "settings": {
             "theme": "dark",
@@ -60,9 +47,11 @@ def save_data(data):
     with open(DATA_FILE, 'w') as f:
         json.dump(data, f, indent=2)
 
-# Load initial data
+# Load initial data; only write defaults to disk if no data file exists yet
+_data_file_existed = os.path.exists(DATA_FILE)
 current_data = load_data()
-save_data(current_data)
+if not _data_file_existed:
+    save_data(current_data)
 
 class LCLHandler(SimpleHTTPRequestHandler):
     """HTTP Request Handler with API support"""
