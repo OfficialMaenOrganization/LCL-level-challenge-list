@@ -1,77 +1,53 @@
-// Authentication Management
+// Authentication System
 const Auth = {
     currentUser: null,
 
-    // Initialize auth from sessionStorage or localStorage
+    // ✅ Auto login on page load
     init() {
-        const userId = sessionStorage.getItem('lcl_user_id');
-        if (userId) {
-            this.currentUser = Storage.getUserById(userId);
-            if (this.currentUser) {
-                console.log(`✅ Auto-logged in: ${this.currentUser.displayName}`);
-            }
+        const savedUser = localStorage.getItem("lcl_user");
+
+        if (savedUser) {
+            this.currentUser = JSON.parse(savedUser);
+            console.log("✅ Auto-logged in:", this.currentUser.displayName);
         }
     },
 
-    // Register user
-    register(email, displayName, password) {
-        console.log(`📝 Registering: ${email}`);
-        const result = Storage.addUser(email, displayName, password);
-        if (result.success) {
-            console.log(`✅ Registered successfully`);
-            return { success: true, message: 'Registration successful! Please log in.' };
-        }
-        console.log(`❌ Registration failed: ${result.message}`);
-        return result;
-    },
-
-    // Login user
+    // Login
     login(email, password) {
-        console.log(`🔐 Login attempt for: ${email}`);
         const user = Storage.getUserByEmail(email);
-        
-        if (!user) {
-            console.log(`❌ User not found`);
-            return { success: false, message: 'User not found' };
+
+        if (user && user.password === password) {
+            this.currentUser = user;
+
+            // ✅ Save session
+            localStorage.setItem("lcl_user", JSON.stringify(user));
+
+            return { success: true };
         }
 
-        if (user.password !== password) {
-            console.log(`❌ Invalid password`);
-            return { success: false, message: 'Invalid password' };
-        }
-
-        this.currentUser = user;
-        sessionStorage.setItem('lcl_user_id', user.id);
-        console.log(`✅ Login successful: ${user.displayName}`);
-        return { success: true, user };
+        return { success: false, message: "Invalid email or password" };
     },
 
-    // Logout user
+    // Register
+    register(email, displayName, password) {
+        return Storage.addUser(email, displayName, password);
+    },
+
+    // Logout
     logout() {
-        const name = this.currentUser ? this.currentUser.displayName : 'User';
         this.currentUser = null;
-        sessionStorage.removeItem('lcl_user_id');
-        console.log(`👋 Logged out: ${name}`);
-        return { success: true };
+
+        // ❌ Remove session
+        localStorage.removeItem("lcl_user");
     },
 
-    // Check if user is logged in
+    // Check login
     isLoggedIn() {
         return this.currentUser !== null;
     },
 
-    // Check if user is admin
+    // Check admin
     isAdmin() {
         return this.currentUser && this.currentUser.isAdmin;
-    },
-
-    // Get current user
-    getCurrentUser() {
-        return this.currentUser;
     }
 };
-
-// Initialize auth when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-    Auth.init();
-});
