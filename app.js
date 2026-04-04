@@ -656,6 +656,7 @@ const App = {
 
 // Initialize app when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
+    Auth.init();
     App.init();
 });
 

@@ -19,20 +19,8 @@ const Storage = {
                     isAdmin: true
                 }
             ],
-            levels: [
-                {
-                    id: 1,
-                    name: 'Stereo Madness',
-                    levelId: 1,
-                    url: 'https://example.com/level1',
-                    youtubeUrl: 'https://youtube.com/watch?v=example1',
-                    thumbnail: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22200%22%3E%3Crect fill=%22%234a90e2%22 width=%22300%22 height=%22200%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22white%22 font-size=%2220%22%3EStereo Madness%3C/text%3E%3C/svg%3E',
-                    difficulty: 'Easy',
-                    submittedBy: 'Admin',
-                    submittedDate: new Date().toISOString(),
-                    status: 'approved'
-                }
-            ],
+            levels: [],
+
             pendingLevels: [],
             settings: {
                 theme: 'dark',
