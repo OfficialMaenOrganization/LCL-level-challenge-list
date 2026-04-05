@@ -165,7 +165,7 @@ const Storage = {
         const data = this.getData();
 
         const newLevel = {
-            id: data.levels.length + 1,
+            id: 'level_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
             ...levelData,
             submittedDate: new Date().toISOString(),
             status: 'approved'
@@ -175,6 +175,7 @@ const Storage = {
         this.saveData(data);
         return newLevel;
     },
+
 
     addPendingLevel(levelData, submittedBy) {
         const data = this.getData();
@@ -207,7 +208,8 @@ const Storage = {
         if (!pending) return false;
 
         const newLevel = {
-            id: data.levels.length + 1,
+            id: 'level_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+
             ...pending,
             status: 'approved'
         };

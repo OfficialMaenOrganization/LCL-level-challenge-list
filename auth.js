@@ -4,13 +4,36 @@ const Auth = {
 
     // ✅ Auto login on page load
     init() {
-        const savedUser = localStorage.getItem("lcl_user");
+        try {
+            const savedUser = localStorage.getItem("lcl_user");
 
-        if (savedUser) {
-            this.currentUser = JSON.parse(savedUser);
-            console.log("✅ Auto-logged in:", this.currentUser.displayName);
+            if (savedUser) {
+                const parsed = JSON.parse(savedUser);
+
+                // Validate that the parsed object looks like a real user
+                if (parsed && parsed.id && parsed.email) {
+                    this.currentUser = parsed;
+                    console.log("✅ Auto-logged in:", this.currentUser.displayName);
+                } else {
+                    console.warn("⚠️ Saved session invalid, clearing it");
+                    localStorage.removeItem("lcl_user");
+                }
+            } else {
+                console.log("ℹ️ No saved session found");
+            }
+        } catch (err) {
+            // localStorage may be unavailable (incognito restrictions, corrupted data, etc.)
+            console.warn("⚠️ Could not read session from localStorage:", err.message);
+            this.currentUser = null;
+
+            try {
+                localStorage.removeItem("lcl_user");
+            } catch (_) {
+                // Silently ignore if we can't clean up either
+            }
         }
     },
+
 
     // Login
     login(email, password) {

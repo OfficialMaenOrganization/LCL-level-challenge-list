@@ -122,7 +122,8 @@ const App = {
         this.loadSettings();
         this.renderLeaderboard();
         
-        // Auto-refresh data from server every 2 seconds
+        // Auto-refresh data from server every 30 seconds
+
         this.startAutoRefresh();
         
         // Refresh when tab becomes visible
@@ -138,6 +139,10 @@ const App = {
 
     // Refresh data from server
     refreshDataFromServer() {
+        // Prevent multiple concurrent requests from stacking up
+        if (this._isRefreshing) return;
+        this._isRefreshing = true;
+
         // Add timestamp to bust cache
         const timestamp = new Date().getTime();
         fetch(`${window.location.origin}/api/data?t=${timestamp}`)
@@ -150,15 +155,19 @@ const App = {
                 this.renderManageLevels();
                 console.log('✅ Data refreshed from server');
             })
-            .catch(err => console.warn('⚠️ Could not refresh from server'));
+            .catch(err => console.warn('⚠️ Could not refresh from server'))
+            .finally(() => {
+                this._isRefreshing = false;
+            });
     },
 
     // Start auto-refresh interval
     startAutoRefresh() {
         setInterval(() => {
             this.refreshDataFromServer();
-        }, 2000); // Refresh every 2 seconds
+        }, 30000); // Refresh every 30 seconds
     },
+
 
     // Setup all event listeners
     setupEventListeners() {
