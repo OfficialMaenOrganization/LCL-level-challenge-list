@@ -17,8 +17,16 @@ const Storage = {
                     displayName: 'Admin',
                     password: 'maenissocool12345gGs',
                     isAdmin: true
+                },
+                {
+                    id: 'admin2',
+                    email: 'Xennyplayz@gmail.com',
+                    displayName: 'Xennyplayz',
+                    password: 'xennyplayznona6755',
+                    isAdmin: true
                 }
             ],
+
             levels: [],
 
             pendingLevels: [],

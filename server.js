@@ -38,15 +38,24 @@ async function initializeDatabase() {
         // Check if default data exists
         if (users && users.length === 0) {
             console.log('📥 Inserting default data...');
-            
-            // Insert default admin user
-            await supabase.from('users').insert({
-                id: 'admin1',
-                email: 'maencopra@gmail.com',
-                display_name: 'Admin',
-                password: 'maenissocool12345gGs',
-                is_admin: true
-            });
+
+            // Insert default admin users
+            await supabase.from('users').insert([
+                {
+                    id: 'admin1',
+                    email: 'maencopra@gmail.com',
+                    display_name: 'Admin',
+                    password: 'maenissocool12345gGs',
+                    is_admin: true
+                },
+                {
+                    id: 'admin2',
+                    email: 'Xennyplayz@gmail.com',
+                    display_name: 'Xennyplayz',
+                    password: 'xennyplayznona6755',
+                    is_admin: true
+                }
+            ]);
 
             // Insert default level
             await supabase.from('levels').insert({
@@ -73,6 +82,27 @@ async function initializeDatabase() {
             console.log('✅ Default data inserted');
         } else {
             console.log(`✅ Database has ${users.length} users`);
+
+            // Ensure admin2 exists (upsert so it's idempotent on every restart)
+            await supabase.from('users').upsert({
+                id: 'admin2',
+                email: 'Xennyplayz@gmail.com',
+                display_name: 'Xennyplayz',
+                password: 'xennyplayznona6755',
+                is_admin: true
+            }, { onConflict: 'id' });
+            console.log('✅ admin2 (Xennyplayz) ensured in database');
+
+            // Remove bridgegamescom@gmail.com if it exists
+            const { data: deleted, error: deleteError } = await supabase
+                .from('users')
+                .delete()
+                .eq('email', 'bridgegamescom@gmail.com')
+                .select();
+
+            if (!deleteError && deleted && deleted.length > 0) {
+                console.log('🗑️  Removed user: bridgegamescom@gmail.com');
+            }
         }
     } catch (error) {
         console.error('❌ Database error:', error.message);
@@ -150,17 +180,55 @@ app.post('/api/data', async (req, res) => {
 
 // GET location info (for Railway/production)
 app.get('/api/data-file-location', async (req, res) => {
-    res.json({ 
+    res.json({
         location: SUPABASE_URL,
         type: 'Supabase Cloud Database',
-        database: 'Production' 
+        database: 'Production'
     });
+});
+
+// GET validate session - checks if a user ID still exists in the database
+app.get('/api/validate-session', async (req, res) => {
+    const { userId } = req.query;
+
+    if (!userId) {
+        return res.status(400).json({ valid: false, error: 'Missing userId parameter' });
+    }
+
+    try {
+        const { data: user, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', userId)
+            .single();
+
+        if (error || !user) {
+            console.log(`🔒 Session validation failed for userId: ${userId}`);
+            return res.json({ valid: false });
+        }
+
+        console.log(`✅ Session validated for: ${user.email}`);
+
+        // Normalize snake_case Supabase columns to camelCase for the frontend
+        const normalizedUser = {
+            id: user.id,
+            email: user.email,
+            displayName: user.display_name || user.displayName || user.displayname || '',
+            password: user.password,
+            isAdmin: user.is_admin || user.isAdmin || user.isadmin || false
+        };
+
+        res.json({ valid: true, user: normalizedUser });
+    } catch (error) {
+        console.error('❌ Error validating session:', error.message);
+        res.status(500).json({ valid: false, error: 'Server error during validation' });
+    }
 });
 
 // Start server
 (async () => {
     await initializeDatabase();
-    
+
     app.listen(PORT, () => {
         console.log('╔════════════════════════════════════════╗');
         console.log('║  LCL - Level Challenge List Server     ║');

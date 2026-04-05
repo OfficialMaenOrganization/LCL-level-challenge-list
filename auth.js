@@ -2,7 +2,7 @@
 const Auth = {
     currentUser: null,
 
-    // ✅ Auto login on page load
+    // ✅ Auto login on page load - validates session against server
     init() {
         try {
             const savedUser = localStorage.getItem("lcl_user");
@@ -12,8 +12,38 @@ const Auth = {
 
                 // Validate that the parsed object looks like a real user
                 if (parsed && parsed.id && parsed.email) {
+                    // Optimistically restore from localStorage for instant UI
                     this.currentUser = parsed;
-                    console.log("✅ Auto-logged in:", this.currentUser.displayName);
+                    console.log("✅ Auto-logged in (localStorage):", this.currentUser.displayName);
+
+                    // Then validate against the server to confirm the account still exists
+                    fetch(`${window.location.origin}/api/validate-session?userId=${encodeURIComponent(parsed.id)}`)
+                        .then(res => res.json())
+                        .then(result => {
+                            if (result.valid && result.user) {
+                                // Refresh local cache with latest user data from server
+                                this.currentUser = result.user;
+                                localStorage.setItem("lcl_user", JSON.stringify(result.user));
+                                console.log("✅ Session validated by server:", this.currentUser.displayName);
+                                // Re-render UI in case admin status or display name changed
+                                if (typeof App !== "undefined" && App.updateUI) {
+                                    App.updateUI();
+                                }
+                            } else {
+                                // Account no longer exists in the database — force logout
+                                console.warn("⚠️ Server rejected session (account deleted or invalid), logging out");
+                                this.currentUser = null;
+                                localStorage.removeItem("lcl_user");
+                                if (typeof App !== "undefined" && App.updateUI) {
+                                    App.updateUI();
+                                    App.navigateTo("home");
+                                }
+                            }
+                        })
+                        .catch(err => {
+                            // Server unreachable — keep the localStorage session as-is
+                            console.warn("⚠️ Could not reach server for session validation, keeping local session:", err.message);
+                        });
                 } else {
                     console.warn("⚠️ Saved session invalid, clearing it");
                     localStorage.removeItem("lcl_user");
@@ -33,6 +63,7 @@ const Auth = {
             }
         }
     },
+
 
 
     // Login
