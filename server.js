@@ -1,69 +1,62 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
+const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 
-// 1. Connect to MongoDB (Railway Environment Variable)
-mongoose.connect(process.env.MONGO_URL)
-    .then(() => console.log("Connected to MongoDB - Data is now permanent"))
-    .catch(err => console.log("DB Connection Error: ", err));
+// --- CONNECT TO SUPABASE ---
+// In Railway, you must add SUPABASE_URL and SUPABASE_KEY to Variables
+const supabase = createClient(
+  process.env.SUPABASE_URL, 
+  process.env.SUPABASE_KEY
+);
 
-// 2. Data Schemas
-const UserSchema = new mongoose.Schema({
-    username: { type: String, unique: true, required: true },
-    password: { type: String, required: true },
-    points: { type: Number, default: 0 },
-    completedLevels: [String]
-});
-const User = mongoose.model('User', UserSchema);
+// --- ROUTES ---
 
-const LevelSchema = new mongoose.Schema({
-    name: String,
-    creator: String,
-    difficulty: String,
-    id: String,
-    points: Number
-});
-const Level = mongoose.model('Level', LevelSchema);
-
-// 3. AUTH ROUTES (Fixes Refresh Logout)
-app.post('/api/register', async (req, res) => {
-    const hashedPassword = await bcrypt.hash(req.body.password, 10);
-    try {
-        const user = await User.create({ username: req.body.username, password: hashedPassword });
-        res.json({ status: 'ok' });
-    } catch (err) { res.json({ status: 'error', error: 'Duplicate username' }) }
+// 1. Get Leaderboard (From Supabase, not JSON)
+app.get('/api/leaderboard', async (req, res) => {
+    const { data, error } = await supabase
+        .from('leaderboard')
+        .select('*')
+        .order('points', { ascending: false });
+    
+    if (error) return res.status(500).json(error);
+    res.json(data);
 });
 
-app.post('/api/login', async (req, res) => {
-    const user = await User.findOne({ username: req.body.username });
-    if (!user) return res.json({ status: 'error', user: false });
+// 2. Submit Level / Points
+app.post('/api/submit', async (req, res) => {
+    const { username, points, levelName } = req.body;
 
-    const isPasswordValid = await bcrypt.compare(req.body.password, user.password);
-    if (isPasswordValid) {
-        const token = jwt.sign({ username: user.username }, 'secret123'); // Use a real secret in production
-        return res.json({ status: 'ok', user: token, userData: { username: user.username, points: user.points } });
+    // Check if player exists
+    let { data: player } = await supabase
+        .from('leaderboard')
+        .select('*')
+        .eq('username', username)
+        .single();
+
+    if (player) {
+        // Update existing player
+        const { data, error } = await supabase
+            .from('leaderboard')
+            .update({ points: player.points + points })
+            .eq('username', username);
+        res.json({ message: "Points Updated" });
     } else {
-        return res.json({ status: 'error', user: false });
+        // Create new player
+        await supabase
+            .from('leaderboard')
+            .insert([{ username, points }]);
+        res.json({ message: "New Player Created" });
     }
 });
 
-// 4. LEADERBOARD ROUTES (Fixes Leaderboard clearing)
-app.get('/api/leaderboard', async (req, res) => {
-    const players = await User.find().sort({ points: -1 }).limit(100);
-    res.json(players);
-});
+// 3. Login / Auth (Refresh Problem Fix)
+// Supabase handles this automatically on the frontend, 
+// so your backend just needs to be the API.
 
-app.get('/api/levels', async (req, res) => {
-    const levels = await Level.find().sort({ points: -1 });
-    res.json(levels);
-});
-
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+const PORT = process.env.PORT || 3000;
+app.listen(P
