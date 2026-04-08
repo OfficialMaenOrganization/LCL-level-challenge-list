@@ -45,19 +45,7 @@ async function initializeDatabase() {
         // Check if default data exists
         if (users && users.length === 0) {
             console.log('📥 Inserting default data...');
-
-            if (DEFAULT_ADMIN_EMAIL && DEFAULT_ADMIN_PASSWORD) {
-                await supabase.from('users').insert({
-                    id: 'admin1',
-                    email: DEFAULT_ADMIN_EMAIL,
-                    display_name: 'Admin',
-                    password: hashPassword(DEFAULT_ADMIN_PASSWORD),
-                    is_admin: true
-                });
-                console.log('✅ Default admin user seeded from environment');
-            } else {
-                console.log('⚠️ No default admin credentials defined in environment, skipping admin user creation.');
-            }
+            console.log('⚠️ No default admin credentials defined in environment, skipping admin user creation.');
 
             // Insert default level
             await supabase.from('levels').insert({
