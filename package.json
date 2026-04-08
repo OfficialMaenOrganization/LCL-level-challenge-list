@@ -1,19 +1,14 @@
 {
-  "name": "lcl-level-challenge-list",
+  "name": "lcl",
   "version": "1.0.0",
-  "description": "LCL - Geometry Dash Community Level Leaderboard with file-based sync across browsers",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
+    "start": "node server.js"
   },
-  "keywords": ["geometry-dash", "leaderboard", "levels", "community"],
-  "author": "LCL Team",
-  "license": "MIT",
   "dependencies": {
-    "@supabase/supabase-js": "^2.101.1",
-    "dotenv": "^16.3.1",
-    "express": "^4.18.2"
+    "express": "4.18.2",
+    "dotenv": "16.3.1",
+    "@supabase/supabase-js": "2.101.1"
   },
   "engines": {
     "node": ">=12.0.0"
